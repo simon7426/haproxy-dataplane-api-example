@@ -1,16 +1,23 @@
 from json import load
 import requests
 from requests.models import HTTPBasicAuth
+import os
 
-load_balancer_link = 'http://36.255.69.28:5555/v2'
+load_balancer_link = 'http://36.255.68.245:5555/v2'
 auth = HTTPBasicAuth('admin','adminpwd')
-transaction_id = '670d07af-baa9-4040-bf9c-d29a7f12c593'
+transaction_id = 'e5984bfa-ebba-40b3-b81e-e3813cd64043'
 def get_configuration():
     config_link = '/services/haproxy/configuration/raw'
     url = load_balancer_link + config_link
     resp = requests.get(url,auth=auth)
+    version = resp.json().get('_version')
+    print(version)
     data = resp.json().get('data')
     print(data)
+    return {
+        'version': version,
+        'data': data
+    }
 
 def get_transaction_list():
     config_link = '/services/haproxy/transactions'
@@ -20,11 +27,18 @@ def get_transaction_list():
     print(data)
 
 def start_transaction():
-    config_link = '/services/haproxy/transactions?version=1'
+    version_no = get_configuration()['version']
+    config_link = f'/services/haproxy/transactions?version={version_no}'
     url = load_balancer_link + config_link
     resp = requests.post(url,auth=auth)
     print(resp.status_code)
     print(resp.json())
+
+def delete_transaction():
+    config_link = f'/services/haproxy/transactions/{transaction_id}'
+    url = load_balancer_link + config_link
+    resp = requests.delete(url,auth=auth)
+    print(resp.status_code)
 
 def add_backend():
     config_link = '/services/haproxy/configuration/backends?'
@@ -58,6 +72,13 @@ def add_server(server_name,server_ip,server_port):
     print(resp.status_code)
     print(resp.json())
 
+def delete_server(server_name, backend_name):
+    config_link = f'/services/haproxy/configuration/servers/{server_name}'
+    query_string = f'?backend={backend_name}&transaction_id={transaction_id}'
+    url = load_balancer_link + config_link + query_string
+    resp = requests.delete(url,auth=auth)
+    print(resp.status_code)
+    # print(resp.json())
 
 def add_frontend():
     config_link = '/services/haproxy/configuration/frontends'
@@ -92,12 +113,28 @@ def commit_transaction():
     print(resp.status_code)
     print(resp.json())
 
+def get_all_transactions():
+    url = load_balancer_link + '/services/haproxy/transactions'
+    resp = requests.get(url, auth=auth)
+    print(resp.status_code)
+    print(resp.json())
+
+def get_transactions(transaction_id):
+    url = load_balancer_link + f'/services/haproxy/transactions/{transaction_id}'
+    resp = requests.get(url, auth=auth)
+    print(resp.status_code)
+    print(resp.json())
+
+# get_all_transactions()
+# get_transactions(transaction_id)
 get_configuration()
 # start_transaction()
+# delete_transaction()
 # get_transaction_list()
 # add_backend()
 # delete_backend('server1')
 # add_server('server1','10.1.0.14',8000)
+# delete_server('server1','all_backend')
 # add_frontend()
 # add_bind('*',80)
 # commit_transaction()
