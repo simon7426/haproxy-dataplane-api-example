@@ -5,7 +5,7 @@ import os
 
 load_balancer_link = 'http://36.255.68.245:5555/v2'
 auth = HTTPBasicAuth('admin','adminpwd')
-transaction_id = 'e5984bfa-ebba-40b3-b81e-e3813cd64043'
+transaction_id = '34f3f8ba-6ffa-45ae-b878-8b8b5e6c3174'
 def get_configuration():
     config_link = '/services/haproxy/configuration/raw'
     url = load_balancer_link + config_link
@@ -125,16 +125,51 @@ def get_transactions(transaction_id):
     print(resp.status_code)
     print(resp.json())
 
+def get_all_backends():
+    url = load_balancer_link + f'/services/haproxy/configuration/backends'
+    resp = requests.get(url,auth=auth)
+    print(resp.status_code)
+    print(resp.json())
+
+def get_backend(backend_name):
+    url = load_balancer_link + f'/services/haproxy/configuration/backends/{backend_name}'
+    resp = requests.get(url,auth=auth)
+    print(resp.status_code)
+    print(resp.json())
+
+def put_backend(backend_name):
+    query_string = '?transaction_id='+transaction_id
+    url = load_balancer_link + f'/services/haproxy/configuration/backends/{backend_name}' + query_string
+    data = {
+        "adv_check": "httpchk",
+        "balance": {
+            "algorithm": "roundrobin"
+        },
+        "httpchk_params": {
+            "method": "GET",
+            "uri": "/healthy",
+            "version": "HTTP/1.1",
+        },
+        "mode": "http",
+        "name": "all_backend",
+    }
+    resp = requests.put(url,auth=auth,json=data)
+    print(resp.status_code)
+    print(resp.json())
+
 # get_all_transactions()
 # get_transactions(transaction_id)
 get_configuration()
 # start_transaction()
 # delete_transaction()
 # get_transaction_list()
+# get_all_backends()
+# get_backend('all_backend')
+# put_backend('all_backend')
 # add_backend()
 # delete_backend('server1')
-# add_server('server1','10.1.0.14',8000)
-# delete_server('server1','all_backend')
+# add_server('server5','10.1.0.21',3000)
+# delete_server('server2','all_backend')
 # add_frontend()
 # add_bind('*',80)
 # commit_transaction()
