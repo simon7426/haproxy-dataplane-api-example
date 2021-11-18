@@ -5,7 +5,7 @@ import os
 
 load_balancer_link = 'http://36.255.68.245:5555/v2'
 auth = HTTPBasicAuth('admin','adminpwd')
-transaction_id = '34f3f8ba-6ffa-45ae-b878-8b8b5e6c3174'
+transaction_id = 'e2b4200e-918a-4388-b9c2-30e9ba29fc20'
 def get_configuration():
     config_link = '/services/haproxy/configuration/raw'
     url = load_balancer_link + config_link
@@ -157,6 +157,44 @@ def put_backend(backend_name):
     print(resp.status_code)
     print(resp.json())
 
+def get_default():
+    url = load_balancer_link + '/services/haproxy/configuration/defaults'
+    resp = requests.get(url,auth=auth)
+    print(resp.status_code)
+    print(resp.json())
+
+def put_default():
+    query_string = '?transaction_id='+transaction_id
+    url = load_balancer_link + '/services/haproxy/configuration/defaults' + query_string
+    data = {
+        "connect_timeout": 5000,
+        "client_timeout": 50000,
+        "server_timeout": 50000,
+        "maxconn": 25000,
+        "mode": "http",
+        "dontlognull": "enabled",
+        "httplog": True
+    }
+    resp = requests.put(url, auth=auth,json=data)
+    print(resp.status_code)
+    print(resp.json())
+
+def get_global():
+    url = load_balancer_link + f'/services/haproxy/configuration/global'
+    resp = requests.get(url,auth=auth)
+    print(resp.status_code)
+    print(resp.json())
+
+def put_global():
+    query_string = '?transaction_id='+transaction_id
+    url = load_balancer_link + f'/services/haproxy/configuration/global' + query_string
+    data = {
+        "maxconn": 25000
+    }
+    resp = requests.put(url, auth=auth,json=data)
+    print(resp.status_code)
+    print(resp.json())
+
 # get_all_transactions()
 # get_transactions(transaction_id)
 get_configuration()
@@ -173,3 +211,7 @@ get_configuration()
 # add_frontend()
 # add_bind('*',80)
 # commit_transaction()
+# get_default()
+# put_default()
+# get_global()
+# put_global()
